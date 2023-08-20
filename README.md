@@ -1,2 +1,2 @@
 # contextGPT
-![ContextGPT Workflow](![Alt Text](https://github.com/kksahay/contextGPT/blob/main/download.jpeg))
+![ContextGPT Workflow](https://github.com/kksahay/contextGPT/blob/main/download.jpeg)
