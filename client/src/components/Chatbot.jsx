@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import React from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { io } from "socket.io-client";
+import { useModel } from "../context/ModelContext";
 
-function ChatMessage(props) {
-  if (props.message.role === "assistant") {
+function ChatMessage({message}) {
+  if (message.role === "assistant" || message.author === '1') {
     return (
       <div className="col-start-1 col-end-8 p-3 rounded-lg">
         <div className="flex flex-row items-center">
@@ -13,13 +15,13 @@ function ChatMessage(props) {
           </div>
           <div className="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl text-left">
             <ReactMarkdown className="prose" remarkPlugins={[remarkGfm]}>
-              {props.message.content}
+              {message.content}
             </ReactMarkdown>
           </div>
         </div>
       </div>
     );
-  } else if (props.message.role === "user") {
+  } else if (message.role === "user" || message.author === '0') {
     return (
       <div className="col-start-6 col-end-13 p-3 rounded-lg">
         <div className="flex items-center justify-start flex-row-reverse">
@@ -27,7 +29,7 @@ function ChatMessage(props) {
             U
           </div>
           <div className="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl text-left">
-            <div className='prose'>{props.message.content}</div>
+            <div className='prose'>{message.content}</div>
           </div>
         </div>
       </div>
@@ -36,18 +38,10 @@ function ChatMessage(props) {
 }
 
 function Chatbot() {
+  const {model} = useModel();
   const [input, setInput] = useState("");
-  const [botState, setBotState] = useState({});
-  const [history, setHistory] = useState([
-    // {
-    //   content: "Hello!",
-    //   role: "user",
-    // },
-    // {
-    //   content: "Hey, how may I assist you?",
-    //   role: "assistant",
-    // },
-  ]);
+  const [history, setHistory] = useState([]);
+  const [socket, setSocket] = useState(io());
 
   const chatEndRef = useRef(null);
 
@@ -56,26 +50,31 @@ function Chatbot() {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [history]);
-
-  async function chatRequest(history, botState) {
+  
+  const chatRequest = async (message) => {
     try {
-      const response = await fetch("http://localhost:4000/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ messages: history, state: botState }),
-      });
-      const content =
-        await response.json();
-      console.log(content);
-      setHistory([...history, content.botResponse]);
-      setBotState(content.newState);
+      socket.emit('sendMessage', message);
     } catch (error) {
       console.error("Failed to send chat history:", error);
     }
   }
-
+  useEffect(() => {
+    const data = JSON.parse(sessionStorage.getItem("history"));
+    if(data && data.length > 0) {
+      setHistory(data);
+    }
+    const socket = io(`${import.meta.env.VITE_BASE_URL}/api/chat`);
+    setSocket(socket);
+    socket.emit('session', model, data);
+    socket.on("response", (conversationHistory) => {
+      setHistory([...history, ...conversationHistory]);
+      sessionStorage.setItem("history", JSON.stringify(conversationHistory));
+    });
+    return () => {
+      socket.off("response");
+    };
+  }, [])
+  
   return (
     <div className="flex h-screen antialiased text-gray-800">
       <div className="flex flex-row h-full w-full overflow-x-hidden">
@@ -106,8 +105,8 @@ function Chatbot() {
                           role: "user",
                         };
                         setHistory([...history, newMessage]);
+                        chatRequest(input);
                         setInput("");
-                        chatRequest([...history, newMessage], botState);
                       }
                     }}
                   />
