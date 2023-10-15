@@ -14,7 +14,11 @@ const createPrompt = (context, query) => {
 export const chatRequest = (socket) => {
     console.log('A user connected to WebSocket');
     let client;
-    socket.on('session', (model) => {
+    let model;
+    let conversationHistory;
+    socket.on('session', (modelInfo, history) => {
+        model = modelInfo;
+        conversationHistory = history;
         if (model.name === 'open-ai') {
             client = new OpenAI({
                 apiKey: model.apiKey
@@ -25,14 +29,13 @@ export const chatRequest = (socket) => {
             });
         }
     })
-    const conversationHistory = [];
     socket.on('sendMessage', async (message) => {
         try {
             const query = new Document({
                 pageContent: message
             })
             const queryVector = await embedDocuments(query);
-            const vectorSimilarity = await qdrantSimilarity('pdf_collection', queryVector.vector);
+            const vectorSimilarity = await qdrantSimilarity(`collection-${model.hash}`, queryVector.vector);
             const prompt = createPrompt(vectorSimilarity[0].payload.content, message);
             // GPT
             if(model.name == 'open-ai') {
@@ -45,20 +48,20 @@ export const chatRequest = (socket) => {
                 conversationHistory.push(response);
             } else {
             // Palm
-                conversationHistory.push({ author: '0', content: prompt })
-                const result = await client.generateMessage({
-                    model: "models/chat-bison-001",
-                    prompt: { messages: conversationHistory },
-                })
-                const response = result[0].candidates[0];
-                conversationHistory.push(response)
+            conversationHistory.push({ author: '0', content: prompt })
+            const result = await client.generateMessage({
+                model: "models/chat-bison-001",
+                prompt: { messages: conversationHistory },
+            })
+            const response = result[0].candidates[0];
+            conversationHistory.push(response)
+            socket.emit("response", conversationHistory);
             }
-            socket.emit("message", response);
         } catch (error) {
             console.log(error)
         }
     });
-    socket.on('disconnect', () => {  
+    socket.on('disconnect', () => {
         console.log('A user disconnected');
     });
 }

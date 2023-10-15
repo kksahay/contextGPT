@@ -3,27 +3,25 @@ import { cleanUp, embedDocuments, prepareDocument, qdrant } from '../helper/help
 import { mkdir } from 'fs/promises'
 import { promisify } from 'util'
 
-export const uploader = async (req, res, next) => {
+export const uploader = async (req, res, next) => { 
     try {
         await cleanUp();
-        if (!req.session.model) {
-            return res.status(500).send("Please provide API Key");
-        }
+        const model = JSON.parse(req.body.model);
         const pdfFile = req.files.pdf;
         const mv = promisify(pdfFile.mv)
         await mkdir('uploads', { recursive: true });
-        const filePath = `uploads/pdf-${req.session.model.hash}.pdf`;
+        const filePath = `uploads/pdf-${model.hash}.pdf`;
         await mv(filePath)
         next();
     } catch (error) {
-        res.status(500).send("Error processing PDF");
+        return res.status(500).send("Error processing PDF");
     }
 }
 
 export const vectorizer = async (req, res) => {
-    const fileName = `pdf-${req.session.model.hash}.pdf`;
+    const model = JSON.parse(req.body.model);
+    const fileName = `pdf-${model.hash}.pdf`;
     const loader = new PDFLoader(`uploads/${fileName}`);
-    const model = req.session.model;
     try {
         const docs = await loader.load();
         const splittedDocuments = await Promise.all(docs.map(prepareDocument));
