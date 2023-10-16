@@ -42,6 +42,7 @@ function Chatbot() {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState([]);
   const [socket, setSocket] = useState(io());
+  const [btnDisabled, setBtnDisabled] = useState(false);
 
   const chatEndRef = useRef(null);
 
@@ -53,9 +54,12 @@ function Chatbot() {
   
   const chatRequest = async (message) => {
     try {
+      setBtnDisabled(true);
       socket.emit('sendMessage', message);
     } catch (error) {
       console.error("Failed to send chat history:", error);
+    } finally {
+      setBtnDisabled(false);
     }
   }
   useEffect(() => {
@@ -67,6 +71,7 @@ function Chatbot() {
     setSocket(socket);
     socket.emit('session', model, data);
     socket.on("response", (conversationHistory) => {
+      setBtnDisabled(false);
       setHistory([...history, ...conversationHistory]);
       sessionStorage.setItem("history", JSON.stringify(conversationHistory));
     });
@@ -76,11 +81,11 @@ function Chatbot() {
   }, [])
   
   return (
-    <div className="flex h-screen antialiased text-gray-800">
+    <div className="flex h-full antialiased text-gray-800">
       <div className="flex flex-row h-full w-full overflow-x-hidden">
-        <div className="flex flex-col flex-auto h-full p-6 ">
-          <div className="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-100 h-full p-4">
-            <div className="flex flex-col h-full overflow-x-auto mb-4">
+        <div className="flex flex-col flex-auto h-full">
+          <div className="flex flex-col flex-auto flex-shrink-0 rounded-xl bg-gray-800 h-92v p-4">
+            <div className="flex flex-col h-92v overflow-x-auto mb-4 ">
               <div className="grid grid-cols-12 gap-y-2">
                 {history.map((message, idx) => (
                   <ChatMessage message={message} key={idx} />
@@ -88,47 +93,48 @@ function Chatbot() {
                 <div ref={chatEndRef}></div>
               </div>
             </div>
-            <div className="flex flex-row items-center h-16 rounded-xl bg-white w-full px-4">
-              <div className="flex-grow ml-4">
+            <div className="flex flex-row items-center h-5v rounded-xl w-full px-4">
+              <div className="flex-grow ml-2v">
                 <div className="relative w-full">
                   <input
                     type="text"
-                    className="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10"
+                    className="flex w-full border bg-white rounded-md focus:outline-none focus:border-indigo-300 pl-4 h-5v"
                     value={input}
                     onChange={(e) => {
                       setInput(e.target.value);
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") {
+                      if (e.key === "Enter" && input.length > 0) {
                         const newMessage = {
                           content: input,
                           role: "user",
                         };
-                        setHistory([...history, newMessage]);
                         chatRequest(input);
+                        setHistory([...history, newMessage]);
                         setInput("");
                       }
                     }}
                   />
                 </div>
               </div>
-              <div className="ml-4">
+              <div className="ml-2v">
                 <button
-                  className="flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 rounded-xl text-white px-4 py-1 flex-shrink-0"
+                  className="flex items-center justify-center bg-indigo-800 hover:bg-indigo-600 rounded-lg text-white px-4 py-1 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => {
                     const newMessage = {
                       content: input,
                       role: "user",
                     };
+                    chatRequest(input);
                     setHistory([...history, newMessage]);
                     setInput("");
-                    chatRequest([...history, newMessage], botState);
                   }}
+                  disabled={btnDisabled || input.length === 0}
                 >
                   <span>Send</span>
-                  <span className="ml-2">
+                  <span className="ml-2v">
                     <svg
-                      className="w-4 h-4 transform rotate-45 -mt-px"
+                      className="w-4 h-2v transform rotate-45 -mt-1v"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

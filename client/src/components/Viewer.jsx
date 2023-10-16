@@ -16,8 +16,7 @@ function Viewer() {
         <iframe
           src={`data:application/pdf;base64,${pdfBase64}`}
           type="application/pdf"
-          width="100%"
-          height="500"
+          className='w-full aspect-auto h-92v rounded-xl'
         >
         </iframe>
       )}

@@ -26,7 +26,7 @@ app.use(fileUpload({
 
 app.post('/api/model', validator)
 
-app.post('/api/upload', uploader, vectorizer);
+app.post('/api/upload', uploader);
 /* Experimental
 app.get('/api/summarize', summarizer);
  */

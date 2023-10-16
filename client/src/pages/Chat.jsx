@@ -19,7 +19,7 @@ function Chat() {
   return (
     <Layout>
       <div className="flex flex-row">
-        <div className="basis-1/2 mt-4">
+        <div className="basis-1/2">
           <Viewer />
         </div>
         <div className="basis-1/2">

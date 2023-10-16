@@ -1,12 +1,45 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+	content: [
+		"./index.html",
+		"./src/**/*.{js,ts,jsx,tsx}",
+	],
+	theme: {
+		extend: {},
+		height: {
+			"2v": "2vh",
+			"4v": "4vh",
+			"5v": "5vh",
+			"8v": "8vh",
+			"20v": "20vh",
+			"30v": "30vh",
+			"40v": "40vh",
+			"50v": "50vh",
+			"60v": "60vh",
+			"70v": "70vh",
+			"80v": "80vh",
+			"92v": "92vh",
+			"95v": "95vh",
+			"100v": "100vh",
+		},
+		margin: {
+			"1v": "0.3vh",
+			"2v": "1.2vh",
+			"3v": "3vh",
+			"5v": "5vh",
+			"10v": "10vh",
+			"20v": "20vh",
+			"30v": "30vh",
+			"40v": "40vh",
+			"50v": "50vh",
+			"60v": "60vh",
+			"70v": "70vh",
+			"80v": "80vh",
+			"90v": "90vh",
+			"95v": "95vh",
+			"100v": "100vh",
+		},
+	},
+	plugins: [],
 }
 

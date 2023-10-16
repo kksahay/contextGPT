@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Homepage from "./components/Homepage"
+import Homepage from "./pages/Homepage"
 import { ModelProvider } from "./context/ModelContext";
 import Chat from "./pages/Chat"
 import Upload from "./pages/Upload"
