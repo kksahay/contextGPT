@@ -26,11 +26,11 @@ app.use(fileUpload({
 
 app.post('/api/model', validator)
 
-app.post('/api/upload', uploader);
+app.post('/api/upload', uploader, vectorizer);
 /* Experimental
 app.get('/api/summarize', summarizer);
- */
 app.post('/api/unload', unloader)
+*/
 
 const io = new Server(server, {
     cors: {
