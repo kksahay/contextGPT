@@ -27,7 +27,6 @@ function Homepage() {
             sessionStorage.clear();
             sessionStorage.setItem("model", JSON.stringify(modelInfo));
             toast.success('API Key set successfully!');
-            setError(false);
         } catch (error) {
             toast.error('Invalid API Key');
         } finally {

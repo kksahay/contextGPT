@@ -17,7 +17,7 @@ function Upload() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    toast("Processing File", { duration: 2000 });
+    toast("Processing File", { duration: 4000 });
     setBtnDisabled(true);
     const file = fileRef.current.files[0];
     try {
