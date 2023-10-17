@@ -27,6 +27,7 @@ export const vectorizer = async (req, res) => {
         const splittedDocuments = await Promise.all(docs.map(prepareDocument));
         const vectors = await Promise.all(splittedDocuments.flat().map((doc) => embedDocuments(doc, model)));
         await qdrant(vectors, model);
+        await cleanUp();
         return res.send({
             message: "Doc upserted in the database"
         });

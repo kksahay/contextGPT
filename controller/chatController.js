@@ -15,15 +15,8 @@ export const chatRequest = (socket) => {
     console.log('A user connected to WebSocket');
     let client;
     let model;
-    const conversationHistory = [];
-    let actualConversation;
     socket.on('session', (modelInfo, history) => {
         model = modelInfo;
-        if (!history) {
-            actualConversation = [];
-        } else {
-            actualConversation = history;
-        }
         if (model.name == 'gpt-3.5') {
             client = new OpenAI({
                 apiKey: model.apiKey
@@ -34,6 +27,7 @@ export const chatRequest = (socket) => {
             });
         }
     })
+    const conversationHistory = [];
     socket.on('sendMessage', async (message) => {
         try {
             const query = new Document({
@@ -45,27 +39,23 @@ export const chatRequest = (socket) => {
             // GPT
             if (model.name == 'gpt-3.5') {
                 conversationHistory.push({ role: 'user', content: prompt })
-                actualConversation.push({ role: 'user', content: message });
                 const chatCompletion = await client.chat.completions.create({
                     model: "gpt-3.5-turbo",
                     messages: conversationHistory,
                 })
                 const response = chatCompletion.choices[0].message;
                 conversationHistory.push(response);
-                actualConversation.push(response);
-                socket.emit("response", actualConversation);
+                socket.emit("response", response);
             } else {
                 // Palm
                 conversationHistory.push({ author: '0', content: prompt });
-                actualConversation.push({ author: '0', content: message });
                 const result = await client.generateMessage({
                     model: "models/chat-bison-001",
                     prompt: { messages: conversationHistory },
                 })
                 const response = result[0].candidates[0];
                 conversationHistory.push(response);
-                actualConversation.push(response);
-                socket.emit("response", actualConversation);
+                socket.emit("response", response);
             }
         } catch (error) {
             console.log(error)

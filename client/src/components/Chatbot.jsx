@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 import { useModel } from "../context/ModelContext";
 
 function ChatMessage({message}) {
-  if (message.role === "assistant" || message.author === '1') {
+  if ((message.role && message.role === 'assistant') || (message.author && message.author === '1')) {
     return (
       <div className="col-start-1 col-end-8 p-3 rounded-lg">
         <div className="flex flex-row items-center">
@@ -21,7 +21,7 @@ function ChatMessage({message}) {
         </div>
       </div>
     );
-  } else if (message.role === "user" || message.author === '0') {
+  } else if ((message.role && message.role === 'user') || (message.author && message.author === '0')) {
     return (
       <div className="col-start-6 col-end-13 p-3 rounded-lg">
         <div className="flex items-center justify-start flex-row-reverse">
@@ -70,10 +70,13 @@ function Chatbot() {
     const socket = io(`${import.meta.env.VITE_BASE_URL}/api/chat`);
     setSocket(socket);
     socket.emit('session', model, data);
-    socket.on("response", (conversationHistory) => {
+    socket.on("response", (response) => {
       setBtnDisabled(false);
-      setHistory([...history, ...conversationHistory]);
-      sessionStorage.setItem("history", JSON.stringify(conversationHistory));
+      setHistory((prevHistory) => {
+        const newHistory = [...prevHistory, response]
+        sessionStorage.setItem("history", JSON.stringify(newHistory));
+        return newHistory;
+      });
     });
     return () => {
       socket.off("response");
@@ -105,12 +108,20 @@ function Chatbot() {
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && input.length > 0) {
-                        const newMessage = {
-                          content: input,
-                          role: "user",
-                        };
+                        let newMessage;
+                        if(model.name === 'palm-ai') {
+                          newMessage = {
+                            author: "0",
+                            content: input,
+                          }
+                        } else {
+                          newMessage = {
+                            content: input,
+                            role: "user",
+                          }
+                        }
+                        setHistory(prevHistory => [...prevHistory, newMessage]);
                         chatRequest(input);
-                        setHistory([...history, newMessage]);
                         setInput("");
                       }
                     }}
@@ -121,10 +132,18 @@ function Chatbot() {
                 <button
                   className="flex items-center justify-center bg-indigo-800 hover:bg-indigo-600 rounded-lg text-white px-4 py-1 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => {
-                    const newMessage = {
-                      content: input,
-                      role: "user",
-                    };
+                    let newMessage;
+                    if(model.name === 'palm-ai') {
+                      newMessage = {
+                        author: "0",
+                        content: input,
+                      }
+                    } else {
+                      newMessage = {
+                        content: input,
+                        role: "user",
+                      }
+                    }
                     chatRequest(input);
                     setHistory([...history, newMessage]);
                     setInput("");
