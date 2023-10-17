@@ -15,8 +15,14 @@ export const chatRequest = (socket) => {
     console.log('A user connected to WebSocket');
     let client;
     let model;
+    let conversationHistory;
     socket.on('session', (modelInfo, history) => {
         model = modelInfo;
+        if(history) {
+            conversationHistory = history;
+        } else {
+            conversationHistory = [];
+        }
         if (model.name == 'gpt-3.5') {
             client = new OpenAI({
                 apiKey: model.apiKey
@@ -27,7 +33,6 @@ export const chatRequest = (socket) => {
             });
         }
     })
-    const conversationHistory = [];
     socket.on('sendMessage', async (message) => {
         try {
             const query = new Document({
