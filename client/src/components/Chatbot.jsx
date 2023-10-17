@@ -58,8 +58,6 @@ function Chatbot() {
       socket.emit('sendMessage', message);
     } catch (error) {
       console.error("Failed to send chat history:", error);
-    } finally {
-      setBtnDisabled(false);
     }
   }
   useEffect(() => {
@@ -107,7 +105,7 @@ function Chatbot() {
                       setInput(e.target.value);
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && input.length > 0) {
+                      if (e.key === "Enter" && input.length > 0 && !btnDisabled) {
                         let newMessage;
                         if(model.name === 'palm-ai') {
                           newMessage = {
@@ -145,7 +143,7 @@ function Chatbot() {
                       }
                     }
                     chatRequest(input);
-                    setHistory([...history, newMessage]);
+                    setHistory(prevHistory => [...prevHistory, newMessage]);
                     setInput("");
                   }}
                   disabled={btnDisabled || input.length === 0}
